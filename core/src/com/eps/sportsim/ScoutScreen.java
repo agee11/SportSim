@@ -15,18 +15,17 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class ScoutScreen implements Screen {
 	
-	ArrayList<Athlete> Agents = new ArrayList<Athlete>();;
+	ArrayList<Athlete> FreeAgents = new ArrayList<Athlete>();;
 	Table nameTable, statTable, rootTable;
 	ScrollPane scrollPane;
 	Stage stage;
 	Skin skin;
-	TextButton[] buttonArray;
+	ArrayList<TextButton> buttonArray;
 	FileHandle handle;
 	Label[] statText;
 	Label[] statValue;
@@ -34,6 +33,7 @@ public class ScoutScreen implements Screen {
 	TextButton scoutButton;
 	Label scoutResource, nameLabel;
 	static int currentAgent;
+	TextButton draftButton;
 	
 	public ScoutScreen(){
 		skin = new Skin(Gdx.files.internal("uiskin.json"));
@@ -43,7 +43,7 @@ public class ScoutScreen implements Screen {
 		String nameArray[] = text.split("\\r?\\n");
 		
 		
-		buttonArray = new TextButton[100];
+		buttonArray = new ArrayList<TextButton>();
 		scrollPane = new ScrollPane(null);
 		stage = new Stage(new ScreenViewport());
 		
@@ -71,7 +71,7 @@ public class ScoutScreen implements Screen {
 		nameLabel = new Label("", skin);
 		statTable.add(nameLabel).align(Align.center);
 		statTable.row();
-		//statTable.setDebug(true);
+		statTable.setDebug(true);
 		
 		statText = new Label[10];
 		statValue = new Label[10];
@@ -91,12 +91,12 @@ public class ScoutScreen implements Screen {
 		
 		try {
 			for(int i = 0; i < 100; i++){
-				Agents.add(new Athlete(i%5 + 1, 4));
-				Agents.get(i).setName(nameArray[i]);
-				buttonArray[i] = new TextButton(Agents.get(i).getName(), skin);
-				buttonArray[i].setSize(200, 50);
-				buttonArray[i].addListener(new onAgentClicked(i));
-				nameTable.add(buttonArray[i]);
+				FreeAgents.add(new Athlete(i%5 + 1, 4));
+				FreeAgents.get(i).setName(nameArray[i]);
+				buttonArray.add(new TextButton(FreeAgents.get(i).getName(), skin));
+				//buttonArray[i].setSize(200, 50);
+				buttonArray.get(i).addListener(new onAgentClicked(i));
+				nameTable.add(buttonArray.get(i));
 				nameTable.row();
 			}
 			
@@ -105,6 +105,9 @@ public class ScoutScreen implements Screen {
 			e.printStackTrace();
 		}
 
+		draftButton = new TextButton("Draft Now", skin);
+		draftButton.addListener(new DraftListener());
+		statTable.add(draftButton);
 		
 		stage.addActor(statTable);
 		stage.addActor(scrollPane);
@@ -167,7 +170,7 @@ public class ScoutScreen implements Screen {
 			// TODO Auto-generated method stub
 
 				currentAgent = iterator;
-				nameLabel.setText(Agents.get(iterator).getName());
+				nameLabel.setText(FreeAgents.get(iterator).getName());
 				statText[0].setText("Strength: ");
 				statText[1].setText("Speed: ");
 				statText[2].setText("Intelligence: ");
@@ -182,19 +185,19 @@ public class ScoutScreen implements Screen {
 				
 				statText[9].setText("Instincts: ");
 				
-				statValue[0].setText(Agents.get(iterator).getStat("strength").getValue());
-				statValue[1].setText(Agents.get(iterator).getStat("speed").getValue());
-				statValue[2].setText(Agents.get(iterator).getStat("intelligence").getValue());
+				statValue[0].setText(FreeAgents.get(iterator).getStat("strength").getValue());
+				statValue[1].setText(FreeAgents.get(iterator).getStat("speed").getValue());
+				statValue[2].setText(FreeAgents.get(iterator).getStat("intelligence").getValue());
 				
-				statValue[3].setText(Agents.get(iterator).getStat("ballHandling").getValue());
-				statValue[4].setText(Agents.get(iterator).getStat("passing").getValue());
-				statValue[5].setText(Agents.get(iterator).getStat("shooting").getValue());
+				statValue[3].setText(FreeAgents.get(iterator).getStat("ballHandling").getValue());
+				statValue[4].setText(FreeAgents.get(iterator).getStat("passing").getValue());
+				statValue[5].setText(FreeAgents.get(iterator).getStat("shooting").getValue());
 				
-				statValue[6].setText(Agents.get(iterator).getStat("blockShot").getValue());
-				statValue[7].setText(Agents.get(iterator).getStat("stealBall").getValue());
-				statValue[8].setText(Agents.get(iterator).getStat("interceptPass").getValue());
+				statValue[6].setText(FreeAgents.get(iterator).getStat("blockShot").getValue());
+				statValue[7].setText(FreeAgents.get(iterator).getStat("stealBall").getValue());
+				statValue[8].setText(FreeAgents.get(iterator).getStat("interceptPass").getValue());
 				
-				statValue[9].setText(Agents.get(iterator).getStat("instincts").getValue());
+				statValue[9].setText(FreeAgents.get(iterator).getStat("instincts").getValue());
 		}
 		
 	}
@@ -209,16 +212,35 @@ public class ScoutScreen implements Screen {
 		public void clicked(InputEvent event, float x, float y) {
 			// TODO Auto-generated method stub
 			super.clicked(event, x, y);
-			if(Agents.get(currentAgent).hiddenStatFound()){
+			if(FreeAgents.get(currentAgent).hiddenStatFound()){
 				resource -= 500;
 				scoutResource.setText("Points: " + resource);
 				int statSelector = (int) (Math.random() * 9);
-				while(!Agents.get(currentAgent).getStat(statSelector).isHidden()){
+				while(!FreeAgents.get(currentAgent).getStat(statSelector).isHidden()){
 					statSelector = (int) (Math.random() * 10);
 				}
-				Agents.get(currentAgent).getStat(statSelector).setHidden(false);
-				statValue[statSelector].setText(Agents.get(currentAgent).getStat(statSelector).getValue());
+				FreeAgents.get(currentAgent).getStat(statSelector).setHidden(false);
+				statValue[statSelector].setText(FreeAgents.get(currentAgent).getStat(statSelector).getValue());
 			}
+		}
+		
+	}
+	
+	private class DraftListener extends ClickListener{
+
+		public DraftListener(){
+			
+		}
+		@Override
+		public void clicked(InputEvent event, float x, float y) {
+			// TODO Auto-generated method stub
+			super.clicked(event, x, y);
+			System.out.println("Draft Button clicked for " + FreeAgents.get(currentAgent).getName());
+			SportSim.yourRoster.add(FreeAgents.get(currentAgent));
+			
+			buttonArray.get(currentAgent).remove();
+			
+			
 		}
 		
 	}

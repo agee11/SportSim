@@ -1,5 +1,7 @@
 package com.eps.sportsim;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -11,12 +13,12 @@ public class SportSim extends Game {
 	SpriteBatch batch;
 	Texture img;
 
-	
+	static ArrayList<Athlete> yourRoster = new ArrayList<Athlete>();
 	
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		this.setScreen(new ScoutScreen());
+		this.setScreen(new RosterScreen());
 
 	}
 
